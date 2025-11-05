@@ -1,0 +1,5 @@
+{
+  "name": "AI Photo Scene Changer",
+  "description": "Upload a photo and use AI to change the time of day, season, number of tourists, and aspect ratio to generate new advertisement-ready images.",
+  "requestFramePermissions": []
+}
