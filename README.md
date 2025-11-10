@@ -8,7 +8,7 @@ This contains everything you need to run your app locally.
 
 View your app in AI Studio: https://ai.studio/apps/drive/19-CsHA3vL-kJQfb21wI-cdp6c1SAn8R3
 
-# Buy me a coffee
+## Support the development
 Thnx! https://buymeacoffee.com/slavk4
 
 ## Run Locally
