@@ -9,6 +9,7 @@ interface ImageDisplayProps {
   isGeneratingVariations: boolean;
   variationError: string | null;
   onGenerateVariations: () => void;
+  filenameKeyword: string;
 }
 
 const LoadingSpinner: React.FC = () => (
@@ -39,16 +40,45 @@ const ImageDisplay: React.FC<ImageDisplayProps> = ({
   variations,
   isGeneratingVariations,
   variationError,
-  onGenerateVariations
+  onGenerateVariations,
+  filenameKeyword
 }) => {
-  const handleSave = (imageUrl: string | null) => {
+  const handleSave = (imageUrl: string | null, format: 'png' | 'jpeg') => {
     if (!imageUrl) return;
-    const link = document.createElement('a');
-    link.href = imageUrl;
-    link.download = `generated-photo-${Date.now()}.png`;
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
+
+    const performDownload = (url: string, extension: string) => {
+      const link = document.createElement('a');
+      link.href = url;
+
+      const sanitizedKeyword = filenameKeyword.trim().replace(/\s+/g, '-');
+      const baseName = sanitizedKeyword ? `${sanitizedKeyword}-photo` : 'generated-photo';
+      link.download = `${baseName}-${Date.now()}.${extension}`;
+      
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    };
+
+    if (format === 'jpeg') {
+      const img = new Image();
+      img.onload = () => {
+        const canvas = document.createElement('canvas');
+        canvas.width = img.width;
+        canvas.height = img.height;
+        const ctx = canvas.getContext('2d');
+        if (ctx) {
+          ctx.fillStyle = '#FFFFFF';
+          ctx.fillRect(0, 0, canvas.width, canvas.height);
+          ctx.drawImage(img, 0, 0);
+          const jpegUrl = canvas.toDataURL('image/jpeg', 0.9);
+          performDownload(jpegUrl, 'jpg');
+        }
+      };
+      img.crossOrigin = "anonymous";
+      img.src = imageUrl;
+    } else { // png
+      performDownload(imageUrl, 'png');
+    }
   };
 
   return (
@@ -81,14 +111,24 @@ const ImageDisplay: React.FC<ImageDisplayProps> = ({
         {generatedImage && !isLoading && (
           <div className="mt-6 flex flex-wrap justify-center gap-4">
             <button
-              onClick={() => handleSave(generatedImage)}
+              onClick={() => handleSave(generatedImage, 'png')}
               className="inline-flex items-center justify-center py-2 px-6 border border-transparent rounded-full shadow-sm text-base font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-colors duration-200"
-              aria-label="Save generated photo"
+              aria-label="Save generated photo as PNG"
             >
               <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor">
                 <path fillRule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm3.293-7.707a1 1 0 011.414 0L9 10.586V3a1 1 0 112 0v7.586l1.293-1.293a1 1 0 111.414 1.414l-3 3a1 1 0 01-1.414 0l-3-3a1 1 0 010-1.414z" clipRule="evenodd" />
               </svg>
-              <span>Save Photo</span>
+              <span>Save as PNG</span>
+            </button>
+            <button
+              onClick={() => handleSave(generatedImage, 'jpeg')}
+              className="inline-flex items-center justify-center py-2 px-6 border border-gray-300 rounded-full shadow-sm text-base font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-colors duration-200"
+              aria-label="Save generated photo as JPG"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor">
+                <path fillRule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm3.293-7.707a1 1 0 011.414 0L9 10.586V3a1 1 0 112 0v7.586l1.293-1.293a1 1 0 111.414 1.414l-3 3a1 1 0 01-1.414 0l-3-3a1 1 0 010-1.414z" clipRule="evenodd" />
+              </svg>
+              <span>Save as JPG</span>
             </button>
              <button
               onClick={onGenerateVariations}
@@ -141,15 +181,26 @@ const ImageDisplay: React.FC<ImageDisplayProps> = ({
                                 <div className="aspect-w-1 aspect-h-1 bg-gray-200 rounded-lg overflow-hidden shadow-md">
                                     <img src={variationSrc} alt={`Variation ${index + 1}`} className="w-full h-full object-contain" />
                                 </div>
-                                <div className="mt-3 text-center">
+                                <div className="mt-3 text-center flex justify-center gap-2">
                                     <button
-                                        onClick={() => handleSave(variationSrc)}
-                                        className="inline-flex items-center py-2 px-4 border border-transparent rounded-full shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+                                        onClick={() => handleSave(variationSrc, 'png')}
+                                        className="inline-flex items-center py-1 px-3 border border-transparent rounded-full shadow-sm text-xs font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+                                        aria-label={`Save variation ${index + 1} as PNG`}
                                     >
-                                        <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-2" viewBox="0 0 20 20" fill="currentColor">
+                                        <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1" viewBox="0 0 20 20" fill="currentColor">
                                             <path fillRule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm3.293-7.707a1 1 0 011.414 0L9 10.586V3a1 1 0 112 0v7.586l1.293-1.293a1 1 0 111.414 1.414l-3 3a1 1 0 01-1.414 0l-3-3a1 1 0 010-1.414z" clipRule="evenodd" />
                                         </svg>
-                                        Save Variation {index + 1}
+                                        PNG
+                                    </button>
+                                    <button
+                                        onClick={() => handleSave(variationSrc, 'jpeg')}
+                                        className="inline-flex items-center py-1 px-3 border border-gray-300 rounded-full shadow-sm text-xs font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+                                        aria-label={`Save variation ${index + 1} as JPG`}
+                                    >
+                                        <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1" viewBox="0 0 20 20" fill="currentColor">
+                                            <path fillRule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm3.293-7.707a1 1 0 011.414 0L9 10.586V3a1 1 0 112 0v7.586l1.293-1.293a1 1 0 111.414 1.414l-3 3a1 1 0 01-1.414 0l-3-3a1 1 0 010-1.414z" clipRule="evenodd" />
+                                        </svg>
+                                        JPG
                                     </button>
                                 </div>
                             </div>

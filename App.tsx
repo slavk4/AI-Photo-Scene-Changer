@@ -25,6 +25,8 @@ const App: React.FC = () => {
     removeText: false,
     customPrompt: '',
   });
+  
+  const [filenameKeyword, setFilenameKeyword] = useState<string>('');
 
   const handleOptionChange = useCallback(<K extends keyof ModificationOptions>(key: K, value: ModificationOptions[K]) => {
     setOptions(prev => ({ ...prev, [key]: value }));
@@ -219,6 +221,19 @@ const App: React.FC = () => {
                   />
                 </div>
 
+                <div>
+                  <label htmlFor="filename-keyword" className="block text-lg font-semibold text-gray-700 mb-2">9. Filename Keyword <span className="text-sm font-normal text-gray-500">(Optional)</span></label>
+                  <input
+                    type="text"
+                    id="filename-keyword"
+                    name="filename-keyword"
+                    className="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border border-gray-300 rounded-md p-2"
+                    placeholder="e.g., travel-blog-header"
+                    value={filenameKeyword}
+                    onChange={(e) => setFilenameKeyword(e.target.value)}
+                  />
+                </div>
+
                 <button
                   type="submit"
                   disabled={isLoading || !originalImageFile}
@@ -249,6 +264,7 @@ const App: React.FC = () => {
               isGeneratingVariations={isGeneratingVariations}
               variationError={variationError}
               onGenerateVariations={handleGenerateVariations}
+              filenameKeyword={filenameKeyword}
             />
           </div>
         </div>
